@@ -1,140 +1,121 @@
 # Telecommunications – Call Drop Prediction
 
-## Project Title
-Call Drop Prediction Using Machine Learning
+# Project Title
+# Call Drop Prediction Using Machine Learning
 
----
+# ----------------------------------------
 
-## Introduction
+# Introduction
+# Call drops are a common problem in telecommunication networks.
+# They affect customer satisfaction and reduce service quality.
+# This project predicts whether a call will drop based on network
+# and user-related factors using Machine Learning techniques.
+# An interactive Streamlit dashboard is also developed for real-time prediction.
 
-Call drops are a common problem in telecommunication networks. They affect customer satisfaction and reduce service quality.  
+# ----------------------------------------
 
-This project focuses on predicting whether a call will drop based on different network and user-related factors using Machine Learning techniques.
+# Objectives
+# - Predict call drop probability using Machine Learning
+# - Identify the main reasons behind call drops
+# - Improve network reliability using predictive analysis
+# - Create a simple dashboard for real-time prediction
 
-An interactive dashboard is also developed to make predictions in real time.
+# ----------------------------------------
 
----
+# Dataset
+# A synthetic telecom dataset is used with the following features:
+# - Signal Strength (dBm)
+# - Network Load (%)
+# - User Speed (km/h)
+# - Call Duration (seconds)
+# - Tower Distance (meters)
+# - Packet Loss (%)
+# - Dropped Call (Target Variable)
+# Target variable:
+# 0 -> Call Successful
+# 1 -> Call Dropped
 
-## Objectives
+# ----------------------------------------
 
-- To predict call drop probability using Machine Learning
-- To identify the main reasons behind call drops
-- To improve network reliability using predictive analysis
-- To create a simple dashboard for real-time prediction
+# Feature Engineering
+# Additional features created to improve model performance:
+# - Signal Quality (Poor / Moderate / Good)
+# - Mobility Level (Low / Medium / High)
+# - Load Category (Low / Medium / High)
+# - Call Risk Score (based on network load, packet loss, and signal strength)
+# Categorical features were converted into numeric form using Label Encoding
 
----
+# ----------------------------------------
 
-## Dataset
+# Machine Learning Models
 
-A synthetic telecom dataset is used for this project.  
-The dataset includes the following features:
+# Random Forest Classifier
+# - Main model used for prediction
+# - Handles complex relationships
+# - Gives good accuracy
 
-- Signal Strength (dBm)
-- Network Load (%)
-- User Speed (km/h)
-- Call Duration (seconds)
-- Tower Distance (meters)
-- Packet Loss (%)
-- Dropped Call (Target Variable)
+# Logistic Regression
+# - Used for comparison
+# - Simple and interpretable model
 
-Target variable:
-- 0 → Call Successful  
-- 1 → Call Dropped  
+# ----------------------------------------
 
----
+# Model Evaluation
+# Metrics used to evaluate model performance:
+# - Confusion Matrix
+# - Accuracy
+# - Precision
+# - Recall
+# - F1 Score
 
-## Feature Engineering
+# ----------------------------------------
 
-To improve model performance, additional features were created:
+# Dashboard
+# Streamlit dashboard features:
+# - User input using sliders
+# - Real-time prediction
+# - Risk warnings
+# - Data visualizations
+# - Storage of predictions using SQLite database
 
-- Signal Quality (Poor / Moderate / Good)
-- Mobility Level (Low / Medium / High)
-- Load Category (Low / Medium / High)
-- Call Risk Score based on network load, packet loss and signal strength
+# ----------------------------------------
 
-Categorical features were converted into numeric form using Label Encoding.
+# Technologies Used
+# - Python
+# - Pandas
+# - NumPy
+# - Scikit-learn
+# - Streamlit
+# - Matplotlib
+# - Seaborn
+# - SQLite
+# - Jamovi (predictive analytics)
 
----
+# ----------------------------------------
 
-## Machine Learning Models
+# Project Structure
+# call-drop-prediction/
+# ├── `call_drop.py`                # Main Streamlit app
+# ├── `call_drop_prediction.py`     # ML model code
+# ├── `calldrop_dataset.csv`        # Dataset
+# ├── `requirements.txt`            # Dependencies
+# ├── `README.md`                   # Project documentation
+# └── `.gitignore`                  # Git ignore file
 
-Two models were implemented:
+# ----------------------------------------
 
-### Random Forest Classifier
-- Main model used for prediction
-- Handles complex relationships
-- Gives good accuracy
+# How to Run the Project
 
-### Logistic Regression
-- Used for comparison
-- Simple and interpretable model
+# 1. Install required libraries
+# `pip install -r requirements.txt`
 
----
+# 2. Run the Streamlit app
+# `streamlit run call_drop.py`
 
-## Model Evaluation
+# ----------------------------------------
 
-The performance of the models was evaluated using:
-
-- Confusion Matrix
-- Accuracy
-- Precision
-- Recall
-- F1 Score
-
-These metrics help measure how well the model predicts call drops.
-
----
-
-## Dashboard
-
-A Streamlit dashboard was developed with the following features:
-
-- User input using sliders
-- Real-time prediction
-- Risk warnings
-- Data visualizations
-- Storage of predictions using SQLite database
-
----
-
-## Technologies Used
-
-- Python
-- Pandas
-- NumPy
-- Scikit-learn
-- Streamlit
-- Matplotlib
-- Seaborn
-- SQLite
-
----
-
-## Project Structure
-
-call-drop-prediction/
-
-- call_drop.py  
-- call_drop_prediction.py  
-- calldrop_dataset.csv  
-- requirements.txt  
-- README.md  
-- .gitignore  
-
----
-
-## How to Run the Project
-
-1. Install required libraries:
-   pip install -r requirements.txt
-
-2. Run the Streamlit app:
-   streamlit run call_drop.py
-
----
-
-## Conclusion
-
-This project shows how Machine Learning can be used to predict call drops in telecom networks.  
-
-By analyzing network parameters such as signal strength, load, and packet loss, the system helps in identifying risky conditions that may lead to call failure.
+# Conclusion
+# This project shows how Machine Learning can be used to predict call drops
+# in telecom networks. By analyzing parameters such as signal strength,
+# network load, and packet loss, the system identifies risky conditions
+# that may lead to call failure, helping improve network reliability.
