@@ -1,121 +1,146 @@
-# Telecommunications – Call Drop Prediction
+telecommunications – call drop prediction
 
-# Project Title
-# Call Drop Prediction Using Machine Learning
+project title: call drop prediction using machine learning
 
-# ----------------------------------------
+introduction
+call drops are a common problem in telecommunication networks
+they affect customer satisfaction and reduce service quality
+this project predicts whether a call will drop based on network
+and user-related factors using machine learning techniques
+an interactive streamlit dashboard is also developed for real-time prediction
 
-# Introduction
-# Call drops are a common problem in telecommunication networks.
-# They affect customer satisfaction and reduce service quality.
-# This project predicts whether a call will drop based on network
-# and user-related factors using Machine Learning techniques.
-# An interactive Streamlit dashboard is also developed for real-time prediction.
+objectives
 
-# ----------------------------------------
+predict call drop probability using machine learning
 
-# Objectives
-# - Predict call drop probability using Machine Learning
-# - Identify the main reasons behind call drops
-# - Improve network reliability using predictive analysis
-# - Create a simple dashboard for real-time prediction
+identify the main reasons behind call drops
 
-# ----------------------------------------
+improve network reliability using predictive analysis
 
-# Dataset
-# A synthetic telecom dataset is used with the following features:
-# - Signal Strength (dBm)
-# - Network Load (%)
-# - User Speed (km/h)
-# - Call Duration (seconds)
-# - Tower Distance (meters)
-# - Packet Loss (%)
-# - Dropped Call (Target Variable)
-# Target variable:
-# 0 -> Call Successful
-# 1 -> Call Dropped
+create a simple dashboard for real-time prediction
 
-# ----------------------------------------
+dataset
+a synthetic telecom dataset is used with the following features
 
-# Feature Engineering
-# Additional features created to improve model performance:
-# - Signal Quality (Poor / Moderate / Good)
-# - Mobility Level (Low / Medium / High)
-# - Load Category (Low / Medium / High)
-# - Call Risk Score (based on network load, packet loss, and signal strength)
-# Categorical features were converted into numeric form using Label Encoding
+signal strength (dbm)
 
-# ----------------------------------------
+network load (%)
 
-# Machine Learning Models
+user speed (km/h)
 
-# Random Forest Classifier
-# - Main model used for prediction
-# - Handles complex relationships
-# - Gives good accuracy
+call duration (seconds)
 
-# Logistic Regression
-# - Used for comparison
-# - Simple and interpretable model
+tower distance (meters)
 
-# ----------------------------------------
+packet loss (%)
 
-# Model Evaluation
-# Metrics used to evaluate model performance:
-# - Confusion Matrix
-# - Accuracy
-# - Precision
-# - Recall
-# - F1 Score
+dropped call (target variable)
 
-# ----------------------------------------
+target variable
 
-# Dashboard
-# Streamlit dashboard features:
-# - User input using sliders
-# - Real-time prediction
-# - Risk warnings
-# - Data visualizations
-# - Storage of predictions using SQLite database
+0 call successful
 
-# ----------------------------------------
+1 call dropped
 
-# Technologies Used
-# - Python
-# - Pandas
-# - NumPy
-# - Scikit-learn
-# - Streamlit
-# - Matplotlib
-# - Seaborn
-# - SQLite
-# - Jamovi (predictive analytics)
+feature engineering
+additional features created to improve model performance
 
-# ----------------------------------------
+signal quality poor moderate good
 
-# Project Structure
-# call-drop-prediction/
-# ├── `call_drop.py`                # Main Streamlit app
-# ├── `call_drop_prediction.py`     # ML model code
-# ├── `calldrop_dataset.csv`        # Dataset
-# ├── `requirements.txt`            # Dependencies
-# ├── `README.md`                   # Project documentation
-# └── `.gitignore`                  # Git ignore file
+mobility level low medium high
 
-# ----------------------------------------
+load category low medium high
 
-# How to Run the Project
+call risk score based on network load packet loss and signal strength
 
-# 1. Install required libraries
-# `pip install -r requirements.txt`
+categorical features were converted into numeric form using label encoding
 
-# 2. Run the Streamlit app
-# `streamlit run call_drop.py`
+machine learning models
 
-# ----------------------------------------
+random forest classifier
 
-# Conclusion
-# This project shows how Machine Learning can be used to predict call drops
-# in telecom networks. By analyzing parameters such as signal strength,
-# network load, and packet loss, the system identifies risky conditions
-# that may lead to call failure, helping improve network reliability.
+main model used for prediction
+
+handles complex relationships
+
+gives good accuracy
+
+logistic regression
+
+used for comparison
+
+simple and interpretable model
+
+model evaluation
+metrics used to evaluate model performance
+
+confusion matrix
+
+accuracy
+
+precision
+
+recall
+
+f1 score
+
+dashboard
+streamlit dashboard features
+
+user input using sliders
+
+real-time prediction
+
+risk warnings
+
+data visualizations
+
+storage of predictions using sqlite database
+
+technologies used
+
+python
+
+pandas
+
+numpy
+
+scikit-learn
+
+streamlit
+
+matplotlib
+
+seaborn
+
+sqlite
+
+jamovi predictive analytics
+
+project structure
+call-drop-prediction
+
+call_drop.py main streamlit app
+
+call_drop_prediction.py ml model code
+
+calldrop_dataset.csv dataset
+
+requirements.txt dependencies
+
+readme.md project documentation
+
+.gitignore git ignore file
+
+how to run the project
+1 install required libraries
+pip install -r requirements.txt
+
+2 run the streamlit app
+streamlit run call_drop.py
+
+conclusion
+this project shows how machine learning can be used to predict call drops
+in telecom networks by analyzing parameters such as signal strength
+network load and packet loss the system identifies risky conditions
+that may lead to call failure helping improve network reliability
