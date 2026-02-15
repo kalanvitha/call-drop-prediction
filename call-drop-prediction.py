@@ -1,13 +1,11 @@
 import streamlit as st
 import pandas as pd
-import sqlite3
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split
 from datetime import datetime
-import plotly.graph_objects as go
+import os
 
 # ------------------ Page Config ------------------
 st.set_page_config(page_title="Call Drop Dashboard", layout="wide", page_icon="📞")
@@ -17,7 +15,7 @@ st.markdown("##### Predict the likelihood of call drops based on network and use
 # ------------------ Load Dataset ------------------
 @st.cache_data
 def load_data():
-    df = pd.read_csv("calldrop_dataset.csv").drop_duplicates()
+    df = pd.read_csv("./calldrop_dataset.csv").drop_duplicates()
     df['packet_loss'] = df['packet_loss'].fillna(df['packet_loss'].mean())
 
     df["signal_quality"] = df["signal_strength"].apply(lambda x: "Poor" if x < -95 else "Moderate" if x < -75 else "Good")
@@ -34,7 +32,7 @@ def load_data():
 
 df, le_signal, le_mobility, le_load = load_data()
 
-# ------------------ Train Model (Cached so it does NOT retrain every rerun) ------------------
+# ------------------ Train Model ------------------
 @st.cache_resource
 def train_model(X, y):
     model = RandomForestClassifier(n_estimators=150, max_depth=10, random_state=42)
@@ -48,25 +46,14 @@ y = df['dropped_call']
 
 model = train_model(X, y)
 
-# ------------------ Database ------------------
-conn = sqlite3.connect("call_drop_predictions.db", check_same_thread=False)
-cursor = conn.cursor()
-cursor.execute('''
-CREATE TABLE IF NOT EXISTS predictions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    signal_strength REAL,
-    network_load REAL,
-    user_speed REAL,
-    call_duration REAL,
-    tower_distance REAL,
-    packet_loss REAL,
-    prediction INTEGER,
-    probability REAL,
-    risk_score REAL,
-    timestamp TEXT
-)
-''')
-conn.commit()
+# ------------------ Prediction History CSV ------------------
+history_file = "./predictions.csv"
+if os.path.exists(history_file):
+    all_preds = pd.read_csv(history_file)
+else:
+    all_preds = pd.DataFrame(columns=["signal_strength","network_load","user_speed","call_duration",
+                                      "tower_distance","packet_loss","prediction","probability",
+                                      "risk_score","timestamp"])
 
 # ------------------ Sidebar Inputs ------------------
 st.sidebar.header("🎛️ Call Parameters")
@@ -121,12 +108,21 @@ with tab2:
         prediction = model.predict(input_df)[0]
         probability = model.predict_proba(input_df)[0][1]
 
-        # --- Insert prediction into DB (accumulative) ---
-        cursor.execute('''
-        INSERT INTO predictions (signal_strength, network_load, user_speed, call_duration, tower_distance, packet_loss, prediction, probability, risk_score, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (signal_strength, network_load, user_speed, call_duration, tower_distance, packet_loss, int(prediction), float(probability), float(risk_score), datetime.now()))
-        conn.commit()
+        # Append to history CSV
+        new_pred = {
+            "signal_strength": signal_strength,
+            "network_load": network_load,
+            "user_speed": user_speed,
+            "call_duration": call_duration,
+            "tower_distance": tower_distance,
+            "packet_loss": packet_loss,
+            "prediction": int(prediction),
+            "probability": float(probability),
+            "risk_score": float(risk_score),
+            "timestamp": datetime.now()
+        }
+        all_preds = pd.concat([all_preds, pd.DataFrame([new_pred])], ignore_index=True)
+        all_preds.to_csv(history_file, index=False)
 
         st.subheader("Prediction Result")
         st.success("✅ Call is Likely Successful" if prediction == 0 else "⚠️ Call is Likely to Drop")
@@ -134,9 +130,5 @@ with tab2:
 # ---- History Tab ----
 with tab3:
     st.subheader("📋 All Predictions History")
-    all_preds = pd.read_sql("SELECT * FROM predictions ORDER BY id DESC", conn)
     st.dataframe(all_preds)
     st.download_button("⬇️ Download CSV", all_preds.to_csv(index=False), "predictions.csv")
-
-# --- Keep connection open ---
-# conn.close()  # Close only on full app exit
