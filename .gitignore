@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+venv/
+.env
+.ipynb_checkpoints/
+call_drop_predictions.db
