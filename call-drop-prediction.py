@@ -1,11 +1,13 @@
 import streamlit as st
 import pandas as pd
+import sqlite3
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
 from datetime import datetime
-import os
+import plotly.graph_objects as go
 
 # ------------------ Page Config ------------------
 st.set_page_config(page_title="Call Drop Dashboard", layout="wide", page_icon="📞")
@@ -15,7 +17,7 @@ st.markdown("##### Predict the likelihood of call drops based on network and use
 # ------------------ Load Dataset ------------------
 @st.cache_data
 def load_data():
-    df = pd.read_csv("./calldrop_dataset.csv").drop_duplicates()
+    df = pd.read_csv("calldrop_dataset.csv").drop_duplicates()
     df['packet_loss'] = df['packet_loss'].fillna(df['packet_loss'].mean())
 
     df["signal_quality"] = df["signal_strength"].apply(lambda x: "Poor" if x < -95 else "Moderate" if x < -75 else "Good")
@@ -33,27 +35,36 @@ def load_data():
 df, le_signal, le_mobility, le_load = load_data()
 
 # ------------------ Train Model ------------------
-@st.cache_resource
-def train_model(X, y):
-    model = RandomForestClassifier(n_estimators=150, max_depth=10, random_state=42)
-    model.fit(X, y)
-    return model
-
 X = df[['signal_strength','network_load','user_speed','call_duration',
         'tower_distance','packet_loss','signal_quality','mobility_level',
         'load_category','call_risk_score']]
 y = df['dropped_call']
 
-model = train_model(X, y)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+model = RandomForestClassifier(n_estimators=150, max_depth=10, random_state=42)
+model.fit(X_train, y_train)
 
-# ------------------ Prediction History CSV ------------------
-history_file = "./predictions.csv"
-if os.path.exists(history_file):
-    all_preds = pd.read_csv(history_file)
-else:
-    all_preds = pd.DataFrame(columns=["signal_strength","network_load","user_speed","call_duration",
-                                      "tower_distance","packet_loss","prediction","probability",
-                                      "risk_score","timestamp"])
+# ------------------ Database ------------------
+conn = sqlite3.connect("call_drop_predictions.db")
+cursor = conn.cursor()
+
+# Create table only if it doesn't exist
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS predictions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    signal_strength REAL,
+    network_load REAL,
+    user_speed REAL,
+    call_duration REAL,
+    tower_distance REAL,
+    packet_loss REAL,
+    prediction INTEGER,
+    probability REAL,
+    risk_score REAL,
+    timestamp TEXT
+)
+''')
+conn.commit()
 
 # ------------------ Sidebar Inputs ------------------
 st.sidebar.header("🎛️ Call Parameters")
@@ -75,6 +86,18 @@ else:
     call_duration = st.sidebar.slider("Call Duration (sec)", 0, 36000, 300, step=60)
     tower_distance = st.sidebar.slider("Tower Distance (m)", 0, 10000, 5000, step=1000)
     packet_loss = st.sidebar.slider("Packet Loss (%)", 0.0, 50.0, 1.0, step=0.1)
+
+# ------------------ Warnings ------------------
+warnings = []
+if user_speed > 150: warnings.append("🚗 High speed – possible train/air travel.")
+if tower_distance > 15000: warnings.append("📡 Tower distance very large – weak signal likely.")
+if call_duration > 50000: warnings.append("⏱️ Extremely long call duration.")
+if packet_loss > 20: warnings.append("📉 High packet loss may degrade call.")
+if signal_strength > -40: warnings.append("📶 Signal strength unusually strong.")
+
+if warnings:
+    st.sidebar.markdown("### ⚠️ Warnings")
+    for w in warnings: st.sidebar.warning(w)
 
 # ------------------ Compute Features ------------------
 def compute_features():
@@ -104,31 +127,65 @@ with tab1:
 
 # ---- Prediction Tab ----
 with tab2:
-    if st.button("Predict Call Drop"):
+    if st.button("Predict Call Drop", key="predict_button"):
         prediction = model.predict(input_df)[0]
         probability = model.predict_proba(input_df)[0][1]
 
-        # Append to history CSV
-        new_pred = {
-            "signal_strength": signal_strength,
-            "network_load": network_load,
-            "user_speed": user_speed,
-            "call_duration": call_duration,
-            "tower_distance": tower_distance,
-            "packet_loss": packet_loss,
-            "prediction": int(prediction),
-            "probability": float(probability),
-            "risk_score": float(risk_score),
-            "timestamp": datetime.now()
-        }
-        all_preds = pd.concat([all_preds, pd.DataFrame([new_pred])], ignore_index=True)
-        all_preds.to_csv(history_file, index=False)
+        # Insert into database
+        cursor.execute(
+            "INSERT INTO predictions (signal_strength, network_load, user_speed, call_duration, tower_distance, packet_loss, prediction, probability, risk_score, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (signal_strength, network_load, user_speed, call_duration, tower_distance, packet_loss, int(prediction), float(probability), float(risk_score), datetime.now())
+        )
+        conn.commit()
 
+        # Prediction result
         st.subheader("Prediction Result")
-        st.success("✅ Call is Likely Successful" if prediction == 0 else "⚠️ Call is Likely to Drop")
+        if prediction == 1:
+            st.error("⚠️ Call is Likely to Drop")
+        else:
+            st.success("✅ Call is Likely Successful")
+
+        # Probability & Risk Gauges
+        col1, col2 = st.columns(2)
+        with col1:
+            fig1 = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=probability*100,
+                title={'text': "Call Drop Probability (%)"},
+                gauge={'axis': {'range':[0,100]}, 'bar': {'color':'red' if probability>0.5 else 'green'}}
+            ))
+            st.plotly_chart(fig1, use_container_width=True)
+        with col2:
+            fig2 = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=risk_score,
+                title={'text': "Call Risk Score"},
+                gauge={'axis': {'range':[0,200]}, 'bar': {'color':'orange'}}
+            ))
+            st.plotly_chart(fig2, use_container_width=True)
+
+        # Feature Importance
+        st.subheader("Feature Importance")
+        importances = model.feature_importances_
+        feat_imp = pd.DataFrame({'Feature': X.columns, 'Importance': importances}).sort_values(by='Importance', ascending=False)
+        fig3, ax3 = plt.subplots(figsize=(8,3))
+        sns.barplot(x='Importance', y='Feature', data=feat_imp, palette="viridis", ax=ax3)
+        ax3.set_title("Feature Importance for Call Drop Prediction")
+        st.pyplot(fig3)
+
+        # Show all predictions
+        st.subheader("📋 All Predictions")
+        all_preds = pd.read_sql("SELECT * FROM predictions ORDER BY id DESC", conn)
+        st.dataframe(all_preds)
+
+        # Download button
+        st.download_button("⬇️ Download CSV", all_preds.to_csv(index=False), "predictions.csv")
 
 # ---- History Tab ----
 with tab3:
-    st.subheader("📋 All Predictions History")
-    st.dataframe(all_preds)
-    st.download_button("⬇️ Download CSV", all_preds.to_csv(index=False), "predictions.csv")
+    st.subheader("Latest 10 Predictions")
+    latest_preds = pd.read_sql("SELECT * FROM predictions ORDER BY id DESC LIMIT 10", conn)
+    st.dataframe(latest_preds)
+
+# ------------------ Close DB ------------------
+conn.close()

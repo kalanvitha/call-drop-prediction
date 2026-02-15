@@ -1,0 +1,3 @@
+signal_strength,network_load,user_speed,call_duration,tower_distance,packet_loss,prediction,probability,risk_score,timestamp
+-80,50,30,300,5000,1.0,0,0.0015278081038402,54.0,2026-02-15 17:26:46.997019
+-80,50,30,300,5000,1.0,0,0.0015278081038402108,54.0,2026-02-15 17:27:03.867647
